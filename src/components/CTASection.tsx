@@ -1,9 +1,10 @@
 import { motion } from 'motion/react';
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Mail, Check, MessageCircle, Share2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
+import { supabase } from '../supabaseClient';
 
 export function CTASection() {
   const [email, setEmail] = useState('');
@@ -42,6 +43,28 @@ export function CTASection() {
       }, 3000);
     }
   };
+
+  const handleSubmitButton = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email) {
+      setIsSubmitted(true);
+      const { data, error } = await supabase.from("emails")
+        .insert([{
+          email: email
+        }])
+
+      if (data) {
+        toast.success('사전 등록이 완료되었습니다!', {
+          description: '출시 소식을 가장 먼저 알려드리겠습니다.',
+        });
+      }
+    // Reset after animation
+      setTimeout(() => {
+        setEmail('');
+        setIsSubmitted(false);
+      }, 3000);
+    }
+  }
 
   const socialLinks = [
     { icon: MessageCircle, label: '카카오톡', color: 'hover:bg-yellow-500' },
@@ -109,25 +132,6 @@ export function CTASection() {
                   required
                   className="flex-1 pl-12 pr-4 bg-transparent border-0 text-white placeholder:text-slate-500 focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
-                <Button
-                  type="submit"
-                  size="lg"
-                  disabled={isSubmitted}
-                  className="rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white border-0 px-8 transition-all duration-300 font-[Gmarket_Sans_TTF]"
-                >
-                  {isSubmitted ? (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="flex items-center gap-2"
-                    >
-                      <Check className="w-5 h-5" />
-                      완료
-                    </motion.div>
-                  ) : (
-                    '알림 받기'
-                  )}
-                </Button>
               </div>
             </div>
           </motion.form>
@@ -141,6 +145,7 @@ export function CTASection() {
             <Button
               size="lg"
               className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-16 py-8 rounded-full shadow-2xl shadow-cyan-500/30 border-0 transition-all duration-300 hover:scale-105 font-[Gmarket_Sans_TTF] text-[16px] font-bold"
+              onClick={handleSubmitButton}
             >
               사전 등록하기
             </Button>
